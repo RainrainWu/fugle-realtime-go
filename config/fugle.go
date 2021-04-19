@@ -12,11 +12,11 @@ type fugleConfig struct {
 	apiToken string
 }
 
-type FugleOption interface {
+type FugleConfigOption interface {
 	apply(*fugleConfig)
 }
 
-func NewFugleConfig(opts ...FugleOption) FugleConfig {
+func NewFugleConfig(opts ...FugleConfigOption) FugleConfig {
 	instance := &fugleConfig{
 		apiToken: os.Getenv("FUGLE_API_TOKEN"),
 	}
