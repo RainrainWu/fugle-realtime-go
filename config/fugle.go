@@ -16,12 +16,6 @@ type FugleOption interface {
 	apply(*fugleConfig)
 }
 
-type fugleOptionFunc func(*fugleConfig)
-
-func (f fugleOptionFunc) apply(c *fugleConfig) {
-	f(c)
-}
-
 func NewFugleConfig(opts ...FugleOption) FugleConfig {
 	instance := &fugleConfig{
 		apiToken: os.Getenv("FUGLE_API_TOKEN"),
