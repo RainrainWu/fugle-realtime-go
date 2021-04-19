@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -17,8 +18,11 @@ type FugleAPIResponse struct {
 }
 
 type FugleAPIData struct {
-	Info  FugleAPIInfo             `json:"info"`
-	Chart map[string]FugleAPIPrice `json:"chart"`
+	Info   FugleAPIInfo                  `json:"info"`
+	Chart  map[string]FugleAPIChartPrice `json:"chart"`
+	Quote  FugleAPIQuote                 `json:"quote"`
+	Meta   FugleAPIMeta                  `json:"meta"`
+	Dealts []FugleAPIDealts              `json:"dealts"`
 }
 
 type FugleAPIInfo struct {
@@ -30,7 +34,7 @@ type FugleAPIInfo struct {
 	Timezone      string    `json:"timeZone"`
 }
 
-type FugleAPIPrice struct {
+type FugleAPIChartPrice struct {
 	Open   float64 `json:"open"`
 	High   float64 `json:"high"`
 	Low    float64 `json:"low"`
@@ -39,15 +43,106 @@ type FugleAPIPrice struct {
 	Volume int     `json:"volume"`
 }
 
+type FugleAPIQuote struct {
+	Iscurbing      bool               `json:"isCurbing"`
+	Iscurbingrise  bool               `json:"isCurbingRise"`
+	Iscurbingfall  bool               `json:"isCurbingFall"`
+	Istrial        bool               `json:"isTrial"`
+	Isopendelayed  bool               `json:"isOpenDelayed"`
+	Isclosedelayed bool               `json:"isCloseDelayed"`
+	Ishalting      bool               `json:"isHalting"`
+	Isclosed       bool               `json:"isClosed"`
+	Total          FugleAPITotal      `json:"total"`
+	Trial          FugleAPITrial      `json:"trial"`
+	Trade          FugleAPITrade      `json:"trade"`
+	Order          FugleAPIOrder      `json:"order"`
+	PriceHigh      FugleAPIQuotePrice `json:"priceHigh"`
+	PriceLow       FugleAPIQuotePrice `json:"priceLow"`
+	PriceOpen      FugleAPIQuotePrice `json:"priceOpen"`
+}
+
+type FugleAPITotal struct {
+	At     time.Time `json:"at"`
+	Order  int       `json:"order"`
+	Price  int       `json:"price"`
+	Unit   int       `json:"unit"`
+	Volume int       `json:"volume"`
+}
+
+type FugleAPITrial struct {
+	At     time.Time `json:"at"`
+	Price  int       `json:"price"`
+	Unit   int       `json:"unit"`
+	Volume int       `json:"volume"`
+}
+
+type FugleAPITrade struct {
+	At     time.Time `json:"at"`
+	Price  int       `json:"price"`
+	Unit   int       `json:"unit"`
+	Volume int       `json:"volume"`
+	Serial int       `json:"serial"`
+}
+
+type FugleAPIOrder struct {
+	At       time.Time           `json:"at"`
+	Bestbids []FugleAPIBestPrice `json:"bestBids"`
+	Bestasks []FugleAPIBestPrice `json:"bestAsks"`
+}
+
+type FugleAPIBestPrice struct {
+	Price  int `json:"price"`
+	Unit   int `json:"unit"`
+	Volume int `json:"volume"`
+}
+
+type FugleAPIQuotePrice struct {
+	Price int       `json:"price"`
+	At    time.Time `json:"at"`
+}
+
+type FugleAPIMeta struct {
+	Isindex        bool   `json:"isIndex"`
+	Namezhtw       string `json:"nameZhTw"`
+	Industryzhtw   string `json:"industryZhTw"`
+	Pricereference int    `json:"priceReference"`
+	Pricehighlimit int    `json:"priceHighLimit"`
+	Pricelowlimit  int    `json:"priceLowLimit"`
+	Candaybuysell  bool   `json:"canDayBuySell"`
+	Candaysellbuy  bool   `json:"canDaySellBuy"`
+	Canshortmargin bool   `json:"canShortMargin"`
+	Canshortlend   bool   `json:"canShortLend"`
+	Volumeperunit  int    `json:"volumePerUnit"`
+	Currency       string `json:"currency"`
+	Isterminated   bool   `json:"isTerminated"`
+	Issuspended    bool   `json:"isSuspended"`
+	Iswarrant      bool   `json:"isWarrant"`
+	Typezhtw       string `json:"typeZhTw"`
+	Abnormal       string `json:"abnormal"`
+}
+
+type FugleAPIDealts struct {
+	At     time.Time `json:"at"`
+	Price  float64   `json:"price"`
+	Unit   int       `json:"unit"`
+	Serial int       `json:"serial"`
+}
+
 type FugleClient interface {
 	Chart(symbolID string, oddLot bool) FugleAPIResponse
+	Quote(symbolID string, oddLot bool) FugleAPIResponse
+	Meta(symbolID string, oddLot bool) FugleAPIResponse
+	Dealts(symbolID string, oddLot bool) FugleAPIResponse
 }
 
 type fugleClient struct {
-	host          string
-	headerAccept  string
-	chartEndpoint string
-	config        config.ConfigSet
+	host           string
+	headerAccept   string
+	chartEndpoint  string
+	quoteEndpoint  string
+	metaEndpoint   string
+	dealtsEndpoint string
+	config         config.ConfigSet
 }
 
 type FugleClientOption interface {
@@ -68,9 +163,12 @@ func ConfigOption(conf config.ConfigSet) FugleClientOption {
 
 func NewFugleClient(opts ...FugleClientOption) (FugleClient, error) {
 	instance := &fugleClient{
-		host:          "https://api.fugle.tw",
-		headerAccept:  "*/*",
-		chartEndpoint: "/realtime/v0/intraday/chart",
+		host:           "https://api.fugle.tw",
+		headerAccept:   "*/*",
+		chartEndpoint:  "/realtime/v0/intraday/chart",
+		quoteEndpoint:  "/realtime/v0/intraday/quote",
+		metaEndpoint:   "/realtime/v0/intraday/meta",
+		dealtsEndpoint: "/realtime/v0/intraday/dealts",
 	}
 	for _, opt := range opts {
 		opt.apply(instance)
@@ -82,18 +180,22 @@ func NewFugleClient(opts ...FugleClientOption) (FugleClient, error) {
 	return instance, nil
 }
 
-func (cli *fugleClient) Chart(symbolID string, oddLot bool) FugleAPIResponse {
+func (cli *fugleClient) concatURL(endpoint, symbolID string, oddLot bool) string {
 
 	url := fmt.Sprintf(
 		"%s%s?apiToken=%s&symbolId=%s",
 		cli.host,
-		cli.chartEndpoint,
+		endpoint,
 		cli.config.GetFugleConfig().GetAPIToken(),
 		symbolID,
 	)
 	if oddLot {
 		url = url + "&oddLot=true"
 	}
+	return url
+}
+
+func (cli *fugleClient) callAPI(url string) io.ReadCloser {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -104,9 +206,49 @@ func (cli *fugleClient) Chart(symbolID string, oddLot bool) FugleAPIResponse {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer resp.Body.Close()
+	return resp.Body
+}
+
+func (cli *fugleClient) Chart(symbolID string, oddLot bool) FugleAPIResponse {
+
+	url := cli.concatURL(cli.chartEndpoint, symbolID, oddLot)
+	respBody := cli.callAPI(url)
+	defer respBody.Close()
 
 	fugleAPIResponse := FugleAPIResponse{}
-	json.NewDecoder(resp.Body).Decode(&fugleAPIResponse)
+	json.NewDecoder(respBody).Decode(&fugleAPIResponse)
+	return fugleAPIResponse
+}
+
+func (cli *fugleClient) Quote(symbolID string, oddLot bool) FugleAPIResponse {
+
+	url := cli.concatURL(cli.quoteEndpoint, symbolID, oddLot)
+	respBody := cli.callAPI(url)
+	defer respBody.Close()
+
+	fugleAPIResponse := FugleAPIResponse{}
+	json.NewDecoder(respBody).Decode(&fugleAPIResponse)
+	return fugleAPIResponse
+}
+
+func (cli *fugleClient) Meta(symbolID string, oddLot bool) FugleAPIResponse {
+
+	url := cli.concatURL(cli.metaEndpoint, symbolID, oddLot)
+	respBody := cli.callAPI(url)
+	defer respBody.Close()
+
+	fugleAPIResponse := FugleAPIResponse{}
+	json.NewDecoder(respBody).Decode(&fugleAPIResponse)
+	return fugleAPIResponse
+}
+
+func (cli *fugleClient) Dealts(symbolID string, oddLot bool) FugleAPIResponse {
+
+	url := cli.concatURL(cli.dealtsEndpoint, symbolID, oddLot)
+	respBody := cli.callAPI(url)
+	defer respBody.Close()
+
+	fugleAPIResponse := FugleAPIResponse{}
+	json.NewDecoder(respBody).Decode(&fugleAPIResponse)
 	return fugleAPIResponse
 }
