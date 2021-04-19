@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/RainrainWu/fugle-realtime-go/client"
@@ -9,8 +8,6 @@ import (
 )
 
 func main() {
-	fmt.Println(config.Config.GetFugleConfig().GetAPIToken())
-
 	myClient, err := client.NewFugleClient(
 		client.ConfigOption(config.Config),
 	)
@@ -18,6 +15,5 @@ func main() {
 		log.Fatal("failed to init fugle api client")
 	}
 	result := myClient.Dealts("2330", false)
-	fmt.Println(result.APIVersion)
-	fmt.Println(result.Data.Dealts)
+	result.PrettyPrint()
 }
