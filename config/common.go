@@ -10,15 +10,23 @@ var (
 	Config ConfigSet
 )
 
-type ConfigSet struct {
-	Fugle FugleConfig
+type ConfigSet interface {
+	GetFugleConfig() FugleConfig
+}
+
+type configSet struct {
+	fugle FugleConfig
 }
 
 func NewConfigSet() ConfigSet {
-	instance := ConfigSet{
-		Fugle: NewFugleConfig(),
+	instance := &configSet{
+		fugle: NewFugleConfig(),
 	}
 	return instance
+}
+
+func (conf *configSet) GetFugleConfig() FugleConfig {
+	return conf.fugle
 }
 
 func init() {
