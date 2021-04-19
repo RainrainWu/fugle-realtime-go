@@ -205,6 +205,7 @@ func (cli *fugleClient) callAPI(url string) io.ReadCloser {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
+		return nil
 	}
 	return resp.Body
 }
