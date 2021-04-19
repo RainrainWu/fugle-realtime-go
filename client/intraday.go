@@ -205,7 +205,6 @@ func (cli *fugleClient) callAPI(url string) io.ReadCloser {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
-		return nil
 	}
 	return resp.Body
 }
@@ -214,7 +213,12 @@ func (cli *fugleClient) Chart(symbolID string, oddLot bool) FugleAPIResponse {
 
 	url := cli.concatURL(cli.chartEndpoint, symbolID, oddLot)
 	respBody := cli.callAPI(url)
-	defer respBody.Close()
+	defer func(body io.ReadCloser) {
+		err := respBody.Close()
+		if err != nil {
+			log.Fatal("Error closing response body")
+		}
+	}(respBody)
 
 	fugleAPIResponse := FugleAPIResponse{}
 	json.NewDecoder(respBody).Decode(&fugleAPIResponse)
@@ -225,7 +229,12 @@ func (cli *fugleClient) Quote(symbolID string, oddLot bool) FugleAPIResponse {
 
 	url := cli.concatURL(cli.quoteEndpoint, symbolID, oddLot)
 	respBody := cli.callAPI(url)
-	defer respBody.Close()
+	defer func(body io.ReadCloser) {
+		err := respBody.Close()
+		if err != nil {
+			log.Fatal("Error closing response body")
+		}
+	}(respBody)
 
 	fugleAPIResponse := FugleAPIResponse{}
 	json.NewDecoder(respBody).Decode(&fugleAPIResponse)
@@ -236,7 +245,12 @@ func (cli *fugleClient) Meta(symbolID string, oddLot bool) FugleAPIResponse {
 
 	url := cli.concatURL(cli.metaEndpoint, symbolID, oddLot)
 	respBody := cli.callAPI(url)
-	defer respBody.Close()
+	defer func(body io.ReadCloser) {
+		err := respBody.Close()
+		if err != nil {
+			log.Fatal("Error closing response body")
+		}
+	}(respBody)
 
 	fugleAPIResponse := FugleAPIResponse{}
 	json.NewDecoder(respBody).Decode(&fugleAPIResponse)
@@ -247,7 +261,12 @@ func (cli *fugleClient) Dealts(symbolID string, oddLot bool) FugleAPIResponse {
 
 	url := cli.concatURL(cli.dealtsEndpoint, symbolID, oddLot)
 	respBody := cli.callAPI(url)
-	defer respBody.Close()
+	defer func(body io.ReadCloser) {
+		err := respBody.Close()
+		if err != nil {
+			log.Fatal("Error closing response body")
+		}
+	}(respBody)
 
 	fugleAPIResponse := FugleAPIResponse{}
 	json.NewDecoder(respBody).Decode(&fugleAPIResponse)

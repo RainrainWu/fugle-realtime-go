@@ -16,7 +16,6 @@ func main() {
 	)
 	if err != nil {
 		log.Fatal("failed to init fugle api client")
-		return
 	}
 	result := myClient.Dealts("2330", false)
 	fmt.Println(result.APIVersion)
