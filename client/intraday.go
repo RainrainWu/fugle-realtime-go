@@ -216,12 +216,15 @@ func (cli *fugleClient) Chart(symbolID string, oddLot bool) FugleAPIResponse {
 	defer func(body io.ReadCloser) {
 		err := respBody.Close()
 		if err != nil {
-			log.Fatal("Error closing response body")
+			log.Fatal("error closing response body")
 		}
 	}(respBody)
 
 	fugleAPIResponse := FugleAPIResponse{}
-	json.NewDecoder(respBody).Decode(&fugleAPIResponse)
+	err := json.NewDecoder(respBody).Decode(&fugleAPIResponse)
+	if err != nil {
+		log.Fatal("error decoding json format from response body")
+	}
 	return fugleAPIResponse
 }
 
@@ -232,12 +235,15 @@ func (cli *fugleClient) Quote(symbolID string, oddLot bool) FugleAPIResponse {
 	defer func(body io.ReadCloser) {
 		err := respBody.Close()
 		if err != nil {
-			log.Fatal("Error closing response body")
+			log.Fatal("error closing response body")
 		}
 	}(respBody)
 
 	fugleAPIResponse := FugleAPIResponse{}
-	json.NewDecoder(respBody).Decode(&fugleAPIResponse)
+	err := json.NewDecoder(respBody).Decode(&fugleAPIResponse)
+	if err != nil {
+		log.Fatal("error decoding json format from response body")
+	}
 	return fugleAPIResponse
 }
 
@@ -248,12 +254,15 @@ func (cli *fugleClient) Meta(symbolID string, oddLot bool) FugleAPIResponse {
 	defer func(body io.ReadCloser) {
 		err := respBody.Close()
 		if err != nil {
-			log.Fatal("Error closing response body")
+			log.Fatal("error closing response body")
 		}
 	}(respBody)
 
 	fugleAPIResponse := FugleAPIResponse{}
-	json.NewDecoder(respBody).Decode(&fugleAPIResponse)
+	err := json.NewDecoder(respBody).Decode(&fugleAPIResponse)
+	if err != nil {
+		log.Fatal("error decoding json format from response body")
+	}
 	return fugleAPIResponse
 }
 
@@ -264,11 +273,14 @@ func (cli *fugleClient) Dealts(symbolID string, oddLot bool) FugleAPIResponse {
 	defer func(body io.ReadCloser) {
 		err := respBody.Close()
 		if err != nil {
-			log.Fatal("Error closing response body")
+			log.Fatal("error closing response body")
 		}
 	}(respBody)
 
 	fugleAPIResponse := FugleAPIResponse{}
-	json.NewDecoder(respBody).Decode(&fugleAPIResponse)
+	err := json.NewDecoder(respBody).Decode(&fugleAPIResponse)
+	if err != nil {
+		log.Fatal("error decoding json format from response body")
+	}
 	return fugleAPIResponse
 }
