@@ -13,3 +13,47 @@ Fugle Realtime Go is a go package to query realtime stock data of Taiwan market 
 ```bash
 $ go get github.com/RainrainWu/fugle-realtime-go
 ```
+
+## Set up your Fugle API token
+```bash
+$ export FUGLE_API_TOKEN=<YOUR_TOKEN>
+```
+
+## Quick demo
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/RainrainWu/fugle-realtime-go/client"
+)
+
+func main() {
+
+	myClient, err := client.NewFugleClient()
+	if err != nil {
+		log.Fatal("failed to init fugle api client")
+	}
+	result := myClient.Meta("2330", false)
+	result.PrettyPrint()
+}
+
+```
+
+## Functions
+### func (client.FugleClient).Chart(symbolID string, oddLot bool) client.FugleAPIResponse
+
+Access the [Chart API](https://developer.fugle.tw/document/intraday/chart)
+
+- func (client.FugleClient).Quote(symbolID string, oddLot bool) client.FugleAPIResponse
+
+Access the [Quote API](https://developer.fugle.tw/document/intraday/quote)
+
+- func (client.FugleClient).Meta(symbolID string, oddLot bool) client.FugleAPIResponse
+
+Access the [Meta API](https://developer.fugle.tw/document/intraday/meta)
+
+- func (client.FugleClient).Dealts(symbolID string, oddLot bool) client.FugleAPIResponse
+
+Access the [Dealts API](https://developer.fugle.tw/document/intraday/dealts)
