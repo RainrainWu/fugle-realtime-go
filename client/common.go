@@ -7,6 +7,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/RainrainWu/fugle-realtime-go/config"
 )
@@ -63,28 +65,25 @@ func NewFugleClient(opts ...FugleClientOption) (FugleClient, error) {
 	return instance, nil
 }
 
-func (cli *fugleClient) concatURL(endpoint, symbolID string, oddLot bool) string {
+func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) io.ReadCloser {
 
-	url := fmt.Sprintf(
-		"%s%s?apiToken=%s&symbolId=%s",
-		cli.host,
-		endpoint,
-		cli.config.GetFugleConfig().GetAPIToken(),
-		symbolID,
-	)
-	if oddLot {
-		url = url + "&oddLot=true"
+	targetURL, err := url.Parse(fmt.Sprintf("%s%s", cli.host, endpoint))
+	if err != nil {
+		log.Fatal(err.Error())
 	}
-	return url
-}
+	params := url.Values{}
+	params.Add("apiToken", cli.config.GetFugleConfig().GetAPIToken())
+	params.Add("symbolId", symbolID)
+	params.Add("oddLot", strconv.FormatBool(oddLot))
+	targetURL.RawQuery = params.Encode()
 
-func (cli *fugleClient) callAPI(url string) io.ReadCloser {
-
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", targetURL.String(), nil)
+	fmt.Println(req.URL)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	req.Header.Set("accept", cli.headerAccept)
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -111,32 +110,28 @@ func (cli *fugleClient) decodeResponseBody(respBody io.ReadCloser) FugleAPIRespo
 
 func (cli *fugleClient) Chart(symbolID string, oddLot bool) FugleAPIResponse {
 
-	url := cli.concatURL(cli.chartEndpoint, symbolID, oddLot)
-	respBody := cli.callAPI(url)
+	respBody := cli.callAPI(cli.chartEndpoint, symbolID, oddLot)
 	defer cli.closeReponseBody(respBody)
 	return cli.decodeResponseBody(respBody)
 }
 
 func (cli *fugleClient) Quote(symbolID string, oddLot bool) FugleAPIResponse {
 
-	url := cli.concatURL(cli.quoteEndpoint, symbolID, oddLot)
-	respBody := cli.callAPI(url)
+	respBody := cli.callAPI(cli.quoteEndpoint, symbolID, oddLot)
 	defer cli.closeReponseBody(respBody)
 	return cli.decodeResponseBody(respBody)
 }
 
 func (cli *fugleClient) Meta(symbolID string, oddLot bool) FugleAPIResponse {
 
-	url := cli.concatURL(cli.metaEndpoint, symbolID, oddLot)
-	respBody := cli.callAPI(url)
+	respBody := cli.callAPI(cli.metaEndpoint, symbolID, oddLot)
 	defer cli.closeReponseBody(respBody)
 	return cli.decodeResponseBody(respBody)
 }
 
 func (cli *fugleClient) Dealts(symbolID string, oddLot bool) FugleAPIResponse {
 
-	url := cli.concatURL(cli.dealtsEndpoint, symbolID, oddLot)
-	respBody := cli.callAPI(url)
+	respBody := cli.callAPI(cli.dealtsEndpoint, symbolID, oddLot)
 	defer cli.closeReponseBody(respBody)
 	return cli.decodeResponseBody(respBody)
 }
