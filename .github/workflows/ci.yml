@@ -24,8 +24,6 @@ jobs:
         FUGLE_API_TOKEN: ${{ secrets.FUGLE_API_TOKEN }}
 
     - name: Lint
-      uses: golangci/golangci-lint-action@v2
-      with:
-        version: latest
-        skip-go-installation: true
-        skip-pkg-cache: true
+      run: |
+        go get -u golang.org/x/lint/golint
+        golint ./...
