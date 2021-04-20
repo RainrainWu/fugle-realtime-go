@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -60,8 +59,7 @@ func NewFugleClient(opts ...FugleClientOption) (FugleClient, error) {
 		opt.apply(instance)
 	}
 	if instance.config == nil {
-		logger.PrintLogger.Fatal("Config object not provided")
-		return nil, errors.New("config object not provided")
+		instance.config = config.Config
 	}
 	return instance, nil
 }
