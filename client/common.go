@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"github.com/RainrainWu/fugle-realtime-go/config"
-	"github.com/RainrainWu/fugle-realtime-go/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type FugleClient interface {
@@ -68,7 +68,7 @@ func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) *http.Re
 
 	targetURL, err := url.Parse(fmt.Sprintf("https://%s%s", cli.host, endpoint))
 	if err != nil {
-		logger.PrintLogger.Error(err.Error())
+		logrus.Error(err.Error())
 		return nil
 	}
 	params := url.Values{}
@@ -79,14 +79,14 @@ func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) *http.Re
 
 	req, err := http.NewRequest("GET", targetURL.String(), nil)
 	if err != nil {
-		logger.PrintLogger.Error(err.Error())
+		logrus.Error(err.Error())
 		return nil
 	}
 	req.Header.Set("accept", cli.headerAccept)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		logger.PrintLogger.Error(err.Error())
+		logrus.Error(err.Error())
 		return nil
 	}
 	return resp
@@ -95,7 +95,7 @@ func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) *http.Re
 func (cli *fugleClient) closeReponseBody(body io.ReadCloser) {
 	err := body.Close()
 	if err != nil {
-		logger.PrintLogger.Error(err.Error())
+		logrus.Error(err.Error())
 	}
 }
 
@@ -104,7 +104,7 @@ func (cli *fugleClient) decodeResponseBody(respBody io.ReadCloser) FugleAPIRespo
 	fugleAPIResponse := FugleAPIResponse{}
 	err := json.NewDecoder(respBody).Decode(&fugleAPIResponse)
 	if err != nil {
-		logger.PrintLogger.Error(err.Error())
+		logrus.Error(err.Error())
 	}
 	return fugleAPIResponse
 }
@@ -115,7 +115,7 @@ func (cli *fugleClient) Chart(symbolID string, oddLot bool) FugleAPIResponse {
 	defer cli.closeReponseBody(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		digest, _ := ioutil.ReadAll(resp.Body)
-		logger.PrintLogger.Error("unexpected response: ", string(digest))
+		logrus.WithField("status code", resp.StatusCode).Error("unexpected response: ", string(digest))
 		return FugleAPIResponse{}
 	}
 	return cli.decodeResponseBody(resp.Body)
@@ -127,7 +127,7 @@ func (cli *fugleClient) Quote(symbolID string, oddLot bool) FugleAPIResponse {
 	defer cli.closeReponseBody(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		digest, _ := ioutil.ReadAll(resp.Body)
-		logger.PrintLogger.Error("unexpected response: ", string(digest))
+		logrus.WithField("status code", resp.StatusCode).Error("unexpected response: ", string(digest))
 		return FugleAPIResponse{}
 	}
 	return cli.decodeResponseBody(resp.Body)
@@ -139,7 +139,7 @@ func (cli *fugleClient) Meta(symbolID string, oddLot bool) FugleAPIResponse {
 	defer cli.closeReponseBody(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		digest, _ := ioutil.ReadAll(resp.Body)
-		logger.PrintLogger.Error("unexpected response: ", string(digest))
+		logrus.WithField("status code", resp.StatusCode).Error("unexpected response: ", string(digest))
 		return FugleAPIResponse{}
 	}
 	return cli.decodeResponseBody(resp.Body)
@@ -151,7 +151,7 @@ func (cli *fugleClient) Dealts(symbolID string, oddLot bool) FugleAPIResponse {
 	defer cli.closeReponseBody(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		digest, _ := ioutil.ReadAll(resp.Body)
-		logger.PrintLogger.Error("unexpected response: ", string(digest))
+		logrus.WithField("status code", resp.StatusCode).Error("unexpected response: ", string(digest))
 		return FugleAPIResponse{}
 	}
 	return cli.decodeResponseBody(resp.Body)

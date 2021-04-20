@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/RainrainWu/fugle-realtime-go/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type FugleAPIResponse struct {
@@ -125,7 +125,7 @@ type FugleAPIDealts struct {
 func (resp *FugleAPIResponse) PrettyPrint() {
 	buffer, err := json.MarshalIndent(resp, "", "  ")
 	if err != nil {
-		logger.PrintLogger.Info(err.Error())
+		logrus.Infoln(err.Error())
 	}
 	fmt.Println(string(buffer))
 }
