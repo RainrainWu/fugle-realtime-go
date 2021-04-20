@@ -18,6 +18,11 @@ jobs:
           paths:
             - "/go/pkg/mod"
       - run:
+          name: "Run golint"
+          command: |
+            go get -u golang.org/x/lint/golint
+            golint ./...
+      - run:
           name: Run tests
           command: go test -v ./...
       - store_test_results:
