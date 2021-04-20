@@ -99,10 +99,17 @@ func (cli *fugleClient) closeReponseBody(body io.ReadCloser) {
 	}
 }
 
-func (cli *fugleClient) decodeResponseBody(respBody io.ReadCloser) FugleAPIResponse {
+func (cli *fugleClient) decodeResponseBody(resp *http.Response) FugleAPIResponse {
 
 	fugleAPIResponse := FugleAPIResponse{}
-	err := json.NewDecoder(respBody).Decode(&fugleAPIResponse)
+	defer cli.closeReponseBody(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		digest, _ := ioutil.ReadAll(resp.Body)
+		logrus.WithField("status code", resp.StatusCode).Error("unexpected response: ", string(digest))
+		return fugleAPIResponse
+	}
+
+	err := json.NewDecoder(resp.Body).Decode(&fugleAPIResponse)
 	if err != nil {
 		logrus.Error(err.Error())
 	}
@@ -112,47 +119,23 @@ func (cli *fugleClient) decodeResponseBody(respBody io.ReadCloser) FugleAPIRespo
 func (cli *fugleClient) Chart(symbolID string, oddLot bool) FugleAPIResponse {
 
 	resp := cli.callAPI(cli.chartEndpoint, symbolID, oddLot)
-	defer cli.closeReponseBody(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		digest, _ := ioutil.ReadAll(resp.Body)
-		logrus.WithField("status code", resp.StatusCode).Error("unexpected response: ", string(digest))
-		return FugleAPIResponse{}
-	}
-	return cli.decodeResponseBody(resp.Body)
+	return cli.decodeResponseBody(resp)
 }
 
 func (cli *fugleClient) Quote(symbolID string, oddLot bool) FugleAPIResponse {
 
 	resp := cli.callAPI(cli.quoteEndpoint, symbolID, oddLot)
-	defer cli.closeReponseBody(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		digest, _ := ioutil.ReadAll(resp.Body)
-		logrus.WithField("status code", resp.StatusCode).Error("unexpected response: ", string(digest))
-		return FugleAPIResponse{}
-	}
-	return cli.decodeResponseBody(resp.Body)
+	return cli.decodeResponseBody(resp)
 }
 
 func (cli *fugleClient) Meta(symbolID string, oddLot bool) FugleAPIResponse {
 
 	resp := cli.callAPI(cli.metaEndpoint, symbolID, oddLot)
-	defer cli.closeReponseBody(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		digest, _ := ioutil.ReadAll(resp.Body)
-		logrus.WithField("status code", resp.StatusCode).Error("unexpected response: ", string(digest))
-		return FugleAPIResponse{}
-	}
-	return cli.decodeResponseBody(resp.Body)
+	return cli.decodeResponseBody(resp)
 }
 
 func (cli *fugleClient) Dealts(symbolID string, oddLot bool) FugleAPIResponse {
 
 	resp := cli.callAPI(cli.dealtsEndpoint, symbolID, oddLot)
-	defer cli.closeReponseBody(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		digest, _ := ioutil.ReadAll(resp.Body)
-		logrus.WithField("status code", resp.StatusCode).Error("unexpected response: ", string(digest))
-		return FugleAPIResponse{}
-	}
-	return cli.decodeResponseBody(resp.Body)
+	return cli.decodeResponseBody(resp)
 }
