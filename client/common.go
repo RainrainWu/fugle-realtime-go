@@ -5,12 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 
 	"github.com/RainrainWu/fugle-realtime-go/config"
+	"github.com/RainrainWu/fugle-realtime-go/logger"
 )
 
 type FugleClient interface {
@@ -59,17 +60,18 @@ func NewFugleClient(opts ...FugleClientOption) (FugleClient, error) {
 		opt.apply(instance)
 	}
 	if instance.config == nil {
-		log.Fatal("Config object not provided")
+		logger.PrintLogger.Fatal("Config object not provided")
 		return nil, errors.New("config object not provided")
 	}
 	return instance, nil
 }
 
-func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) http.Response {
+func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) *http.Response {
 
 	targetURL, err := url.Parse(fmt.Sprintf("https://%s%s", cli.host, endpoint))
 	if err != nil {
-		log.Fatal(err.Error())
+		logger.PrintLogger.Error(err.Error())
+		return nil
 	}
 	params := url.Values{}
 	params.Add("apiToken", cli.config.GetFugleConfig().GetAPIToken())
@@ -79,21 +81,23 @@ func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) http.Res
 
 	req, err := http.NewRequest("GET", targetURL.String(), nil)
 	if err != nil {
-		log.Fatal(err.Error())
+		logger.PrintLogger.Error(err.Error())
+		return nil
 	}
 	req.Header.Set("accept", cli.headerAccept)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatal(err.Error())
+		logger.PrintLogger.Error(err.Error())
+		return nil
 	}
-	return *resp
+	return resp
 }
 
 func (cli *fugleClient) closeReponseBody(body io.ReadCloser) {
 	err := body.Close()
 	if err != nil {
-		log.Fatal(err.Error())
+		logger.PrintLogger.Error(err.Error())
 	}
 }
 
@@ -102,7 +106,7 @@ func (cli *fugleClient) decodeResponseBody(respBody io.ReadCloser) FugleAPIRespo
 	fugleAPIResponse := FugleAPIResponse{}
 	err := json.NewDecoder(respBody).Decode(&fugleAPIResponse)
 	if err != nil {
-		log.Fatal(err.Error())
+		logger.PrintLogger.Error(err.Error())
 	}
 	return fugleAPIResponse
 }
@@ -110,39 +114,47 @@ func (cli *fugleClient) decodeResponseBody(respBody io.ReadCloser) FugleAPIRespo
 func (cli *fugleClient) Chart(symbolID string, oddLot bool) FugleAPIResponse {
 
 	resp := cli.callAPI(cli.chartEndpoint, symbolID, oddLot)
-	if resp.StatusCode != http.StatusOK {
-		log.Fatal("unexpected response status code: ", resp.StatusCode)
-	}
 	defer cli.closeReponseBody(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		digest, _ := ioutil.ReadAll(resp.Body)
+		logger.PrintLogger.Error("unexpected response: ", string(digest))
+		return FugleAPIResponse{}
+	}
 	return cli.decodeResponseBody(resp.Body)
 }
 
 func (cli *fugleClient) Quote(symbolID string, oddLot bool) FugleAPIResponse {
 
 	resp := cli.callAPI(cli.quoteEndpoint, symbolID, oddLot)
-	if resp.StatusCode != http.StatusOK {
-		log.Fatal("unexpected response status code: ", resp.StatusCode)
-	}
 	defer cli.closeReponseBody(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		digest, _ := ioutil.ReadAll(resp.Body)
+		logger.PrintLogger.Error("unexpected response: ", string(digest))
+		return FugleAPIResponse{}
+	}
 	return cli.decodeResponseBody(resp.Body)
 }
 
 func (cli *fugleClient) Meta(symbolID string, oddLot bool) FugleAPIResponse {
 
 	resp := cli.callAPI(cli.metaEndpoint, symbolID, oddLot)
-	if resp.StatusCode != http.StatusOK {
-		log.Fatal("unexpected response status code: ", resp.StatusCode)
-	}
 	defer cli.closeReponseBody(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		digest, _ := ioutil.ReadAll(resp.Body)
+		logger.PrintLogger.Error("unexpected response: ", string(digest))
+		return FugleAPIResponse{}
+	}
 	return cli.decodeResponseBody(resp.Body)
 }
 
 func (cli *fugleClient) Dealts(symbolID string, oddLot bool) FugleAPIResponse {
 
 	resp := cli.callAPI(cli.dealtsEndpoint, symbolID, oddLot)
-	if resp.StatusCode != http.StatusOK {
-		log.Fatal("unexpected response status code: ", resp.StatusCode)
-	}
 	defer cli.closeReponseBody(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		digest, _ := ioutil.ReadAll(resp.Body)
+		logger.PrintLogger.Error("unexpected response: ", string(digest))
+		return FugleAPIResponse{}
+	}
 	return cli.decodeResponseBody(resp.Body)
 }

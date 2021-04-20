@@ -1,8 +1,7 @@
 package config
 
 import (
-	"log"
-
+	"github.com/RainrainWu/fugle-realtime-go/logger"
 	"github.com/joho/godotenv"
 )
 
@@ -32,7 +31,10 @@ func (conf *configSet) GetFugleConfig() FugleConfig {
 func init() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		logger.PrintLogger.Warn(
+			"error loading .env file, current environment " +
+				"variables would be used directly",
+		)
 	}
 	Config = NewConfigSet()
 }
