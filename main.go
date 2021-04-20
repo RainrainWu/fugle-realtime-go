@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/RainrainWu/fugle-realtime-go/client"
 	"github.com/RainrainWu/fugle-realtime-go/config"
-	"github.com/RainrainWu/fugle-realtime-go/logger"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -11,8 +11,8 @@ func main() {
 		client.ConfigOption(config.Config),
 	)
 	if err != nil {
-		logger.PrintLogger.Fatal("failed to init fugle api client")
+		logrus.Fatal("failed to init fugle api client")
 	}
-	result := myClient.Dealts("2330", false)
+	result := myClient.Meta("2330", false)
 	result.PrettyPrint()
 }
