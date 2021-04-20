@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"log"
+
 	"go.uber.org/zap"
 )
 
@@ -11,7 +13,7 @@ var (
 func syncLogger(logger *zap.SugaredLogger) {
 	err := logger.Sync()
 	if err != nil {
-		PrintLogger.Error(err.Error())
+		log.Println(err.Error())
 	}
 }
 
