@@ -46,14 +46,14 @@ func main() {
 
 Access the [Chart API](https://developer.fugle.tw/document/intraday/chart)
 
-- func (client.FugleClient).Quote(symbolID string, oddLot bool) client.FugleAPIResponse
+### func (client.FugleClient).Quote(symbolID string, oddLot bool) client.FugleAPIResponse
 
 Access the [Quote API](https://developer.fugle.tw/document/intraday/quote)
 
-- func (client.FugleClient).Meta(symbolID string, oddLot bool) client.FugleAPIResponse
+### func (client.FugleClient).Meta(symbolID string, oddLot bool) client.FugleAPIResponse
 
 Access the [Meta API](https://developer.fugle.tw/document/intraday/meta)
 
-- func (client.FugleClient).Dealts(symbolID string, oddLot bool) client.FugleAPIResponse
+### func (client.FugleClient).Dealts(symbolID string, oddLot bool) client.FugleAPIResponse
 
 Access the [Dealts API](https://developer.fugle.tw/document/intraday/dealts)
