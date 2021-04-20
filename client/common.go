@@ -48,7 +48,7 @@ func ConfigOption(conf config.ConfigSet) FugleClientOption {
 
 func NewFugleClient(opts ...FugleClientOption) (FugleClient, error) {
 	instance := &fugleClient{
-		host:           "https://api.fugle.tw",
+		host:           "api.fugle.tw",
 		headerAccept:   "*/*",
 		chartEndpoint:  "/realtime/v0/intraday/chart",
 		quoteEndpoint:  "/realtime/v0/intraday/quote",
@@ -65,9 +65,9 @@ func NewFugleClient(opts ...FugleClientOption) (FugleClient, error) {
 	return instance, nil
 }
 
-func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) io.ReadCloser {
+func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) http.Response {
 
-	targetURL, err := url.Parse(fmt.Sprintf("%s%s", cli.host, endpoint))
+	targetURL, err := url.Parse(fmt.Sprintf("https://%s%s", cli.host, endpoint))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -78,7 +78,6 @@ func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) io.ReadC
 	targetURL.RawQuery = params.Encode()
 
 	req, err := http.NewRequest("GET", targetURL.String(), nil)
-	fmt.Println(req.URL)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -88,7 +87,7 @@ func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) io.ReadC
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	return resp.Body
+	return *resp
 }
 
 func (cli *fugleClient) closeReponseBody(body io.ReadCloser) {
@@ -110,28 +109,40 @@ func (cli *fugleClient) decodeResponseBody(respBody io.ReadCloser) FugleAPIRespo
 
 func (cli *fugleClient) Chart(symbolID string, oddLot bool) FugleAPIResponse {
 
-	respBody := cli.callAPI(cli.chartEndpoint, symbolID, oddLot)
-	defer cli.closeReponseBody(respBody)
-	return cli.decodeResponseBody(respBody)
+	resp := cli.callAPI(cli.chartEndpoint, symbolID, oddLot)
+	if resp.StatusCode != http.StatusOK {
+		log.Fatal("unexpected response status code: ", resp.StatusCode)
+	}
+	defer cli.closeReponseBody(resp.Body)
+	return cli.decodeResponseBody(resp.Body)
 }
 
 func (cli *fugleClient) Quote(symbolID string, oddLot bool) FugleAPIResponse {
 
-	respBody := cli.callAPI(cli.quoteEndpoint, symbolID, oddLot)
-	defer cli.closeReponseBody(respBody)
-	return cli.decodeResponseBody(respBody)
+	resp := cli.callAPI(cli.quoteEndpoint, symbolID, oddLot)
+	if resp.StatusCode != http.StatusOK {
+		log.Fatal("unexpected response status code: ", resp.StatusCode)
+	}
+	defer cli.closeReponseBody(resp.Body)
+	return cli.decodeResponseBody(resp.Body)
 }
 
 func (cli *fugleClient) Meta(symbolID string, oddLot bool) FugleAPIResponse {
 
-	respBody := cli.callAPI(cli.metaEndpoint, symbolID, oddLot)
-	defer cli.closeReponseBody(respBody)
-	return cli.decodeResponseBody(respBody)
+	resp := cli.callAPI(cli.metaEndpoint, symbolID, oddLot)
+	if resp.StatusCode != http.StatusOK {
+		log.Fatal("unexpected response status code: ", resp.StatusCode)
+	}
+	defer cli.closeReponseBody(resp.Body)
+	return cli.decodeResponseBody(resp.Body)
 }
 
 func (cli *fugleClient) Dealts(symbolID string, oddLot bool) FugleAPIResponse {
 
-	respBody := cli.callAPI(cli.dealtsEndpoint, symbolID, oddLot)
-	defer cli.closeReponseBody(respBody)
-	return cli.decodeResponseBody(respBody)
+	resp := cli.callAPI(cli.dealtsEndpoint, symbolID, oddLot)
+	if resp.StatusCode != http.StatusOK {
+		log.Fatal("unexpected response status code: ", resp.StatusCode)
+	}
+	defer cli.closeReponseBody(resp.Body)
+	return cli.decodeResponseBody(resp.Body)
 }
