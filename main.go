@@ -13,6 +13,6 @@ func main() {
 	if err != nil {
 		logrus.Fatal("failed to init fugle api client")
 	}
-	result := myClient.Meta("2330", false)
+	result := myClient.Meta("0056", false)
 	result.PrettyPrint()
 }
