@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,12 +31,12 @@ type FugleAPIInfo struct {
 }
 
 type FugleAPIChartPrice struct {
-	Open   float64 `json:"open"`
-	High   float64 `json:"high"`
-	Low    float64 `json:"low"`
-	Close  float64 `json:"close"`
-	Volume int     `json:"volume"`
-	Unit   int     `json:"unit"`
+	Open   decimal.Decimal `json:"open"`
+	High   decimal.Decimal `json:"high"`
+	Low    decimal.Decimal `json:"low"`
+	Close  decimal.Decimal `json:"close"`
+	Volume decimal.Decimal `json:"volume"`
+	Unit   decimal.Decimal `json:"unit"`
 }
 
 type FugleAPIQuote struct {
@@ -57,24 +58,24 @@ type FugleAPIQuote struct {
 }
 
 type FugleAPITotal struct {
-	At     string `json:"at"`
-	Unit   int    `json:"unit"`
-	Volume int    `json:"volume"`
+	At     string          `json:"at"`
+	Unit   decimal.Decimal `json:"unit"`
+	Volume decimal.Decimal `json:"volume"`
 }
 
 type FugleAPITrial struct {
-	At     string  `json:"at"`
-	Price  float64 `json:"price"`
-	Unit   int     `json:"unit"`
-	Volume int     `json:"volume"`
+	At     string          `json:"at"`
+	Price  decimal.Decimal `json:"price"`
+	Unit   decimal.Decimal `json:"unit"`
+	Volume decimal.Decimal `json:"volume"`
 }
 
 type FugleAPITrade struct {
-	At     string  `json:"at"`
-	Price  float64 `json:"price"`
-	Unit   int     `json:"unit"`
-	Volume int     `json:"volume"`
-	Serial int     `json:"serial"`
+	At     string          `json:"at"`
+	Price  decimal.Decimal `json:"price"`
+	Unit   decimal.Decimal `json:"unit"`
+	Volume decimal.Decimal `json:"volume"`
+	Serial decimal.Decimal `json:"serial"`
 }
 
 type FugleAPIOrder struct {
@@ -84,42 +85,42 @@ type FugleAPIOrder struct {
 }
 
 type FugleAPIBestPrice struct {
-	Price  float64 `json:"price"`
-	Unit   int     `json:"unit"`
-	Volume int     `json:"volume"`
+	Price  decimal.Decimal `json:"price"`
+	Unit   decimal.Decimal `json:"unit"`
+	Volume decimal.Decimal `json:"volume"`
 }
 
 type FugleAPIQuotePrice struct {
-	Price float64 `json:"price"`
-	At    string  `json:"at"`
+	Price decimal.Decimal `json:"price"`
+	At    string          `json:"at"`
 }
 
 type FugleAPIMeta struct {
-	Isindex                bool   `json:"isIndex"`
-	Namezhtw               string `json:"nameZhTw"`
-	Industryzhtw           string `json:"industryZhTw"`
-	Pricereference         int    `json:"priceReference"`
-	Pricehighlimit         int    `json:"priceHighLimit"`
-	Pricelowlimit          int    `json:"priceLowLimit"`
-	Candaybuysell          bool   `json:"canDayBuySell"`
-	Candaysellbuy          bool   `json:"canDaySellBuy"`
-	Canshortmargin         bool   `json:"canShortMargin"`
-	Canshortlend           bool   `json:"canShortLend"`
-	Volumeperunit          int    `json:"volumePerUnit"`
-	Currency               string `json:"currency"`
-	Isterminated           bool   `json:"isTerminated"`
-	Issuspended            bool   `json:"isSuspended"`
-	Iswarrant              bool   `json:"isWarrant"`
-	Typezhtw               string `json:"typeZhTw"`
-	Abnormal               string `json:"abnormal"`
-	IsUnusuallyRecommended bool   `json:"isUnusuallyRecommended"`
+	Isindex                bool            `json:"isIndex"`
+	Namezhtw               string          `json:"nameZhTw"`
+	Industryzhtw           string          `json:"industryZhTw"`
+	Pricereference         decimal.Decimal `json:"priceReference"`
+	Pricehighlimit         decimal.Decimal `json:"priceHighLimit"`
+	Pricelowlimit          decimal.Decimal `json:"priceLowLimit"`
+	Candaybuysell          bool            `json:"canDayBuySell"`
+	Candaysellbuy          bool            `json:"canDaySellBuy"`
+	Canshortmargin         bool            `json:"canShortMargin"`
+	Canshortlend           bool            `json:"canShortLend"`
+	Volumeperunit          int             `json:"volumePerUnit"`
+	Currency               string          `json:"currency"`
+	Isterminated           bool            `json:"isTerminated"`
+	Issuspended            bool            `json:"isSuspended"`
+	Iswarrant              bool            `json:"isWarrant"`
+	Typezhtw               string          `json:"typeZhTw"`
+	Abnormal               string          `json:"abnormal"`
+	IsUnusuallyRecommended bool            `json:"isUnusuallyRecommended"`
 }
 
 type FugleAPIDealts struct {
-	At     string  `json:"at"`
-	Price  float64 `json:"price"`
-	Unit   int     `json:"unit"`
-	Serial int     `json:"serial"`
+	At     string          `json:"at"`
+	Price  decimal.Decimal `json:"price"`
+	Unit   decimal.Decimal `json:"unit"`
+	Serial decimal.Decimal `json:"serial"`
 }
 
 func (resp *FugleAPIResponse) PrettyPrint() {
