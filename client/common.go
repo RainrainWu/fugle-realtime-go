@@ -10,14 +10,15 @@ import (
 	"strconv"
 
 	"github.com/RainrainWu/fugle-realtime-go/config"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
 type FugleClient interface {
-	Chart(symbolID string, oddLot bool) FugleAPIResponse
-	Quote(symbolID string, oddLot bool) FugleAPIResponse
-	Meta(symbolID string, oddLot bool) FugleAPIResponse
-	Dealts(symbolID string, oddLot bool) FugleAPIResponse
+	Chart(symbolID string, oddLot bool) (FugleAPIResponse, error)
+	Quote(symbolID string, oddLot bool) (FugleAPIResponse, error)
+	Meta(symbolID string, oddLot bool) (FugleAPIResponse, error)
+	Dealts(symbolID string, oddLot bool) (FugleAPIResponse, error)
 }
 
 type fugleClient struct {
@@ -64,12 +65,12 @@ func NewFugleClient(opts ...FugleClientOption) (FugleClient, error) {
 	return instance, nil
 }
 
-func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) *http.Response {
+func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) (*http.Response, error) {
 
 	targetURL, err := url.Parse(fmt.Sprintf("https://%s%s", cli.host, endpoint))
 	if err != nil {
 		logrus.Error(err.Error())
-		return nil
+		return nil, errors.Wrap(err, "parse url failed")
 	}
 	params := url.Values{}
 	params.Add("apiToken", cli.config.GetFugleConfig().GetAPIToken())
@@ -80,16 +81,16 @@ func (cli *fugleClient) callAPI(endpoint, symbolID string, oddLot bool) *http.Re
 	req, err := http.NewRequest("GET", targetURL.String(), nil)
 	if err != nil {
 		logrus.Error(err.Error())
-		return nil
+		return nil, errors.Wrap(err, "initialize request failed")
 	}
 	req.Header.Set("accept", cli.headerAccept)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		logrus.Error(err.Error())
-		return nil
+		return nil, errors.Wrap(err, "send request failed")
 	}
-	return resp
+	return resp, nil
 }
 
 func (cli *fugleClient) closeReponseBody(body io.ReadCloser) {
@@ -99,43 +100,58 @@ func (cli *fugleClient) closeReponseBody(body io.ReadCloser) {
 	}
 }
 
-func (cli *fugleClient) decodeResponseBody(resp *http.Response) FugleAPIResponse {
+func (cli *fugleClient) decodeResponseBody(resp *http.Response) (FugleAPIResponse, error) {
 
-	fugleAPIResponse := FugleAPIResponse{}
+	fugleAPIResponse := FugleAPIResponse{
+		StatusCode: resp.StatusCode,
+	}
 	defer cli.closeReponseBody(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		digest, _ := ioutil.ReadAll(resp.Body)
 		logrus.WithField("status code", resp.StatusCode).Error("unexpected response: ", string(digest))
-		return fugleAPIResponse
+		return fugleAPIResponse, errors.New("unexpected status code")
 	}
 
 	err := json.NewDecoder(resp.Body).Decode(&fugleAPIResponse)
 	if err != nil {
 		logrus.Error(err.Error())
+		return fugleAPIResponse, errors.Wrap(err, "decode json failed")
 	}
-	return fugleAPIResponse
+	return fugleAPIResponse, nil
 }
 
-func (cli *fugleClient) Chart(symbolID string, oddLot bool) FugleAPIResponse {
+func (cli *fugleClient) Chart(symbolID string, oddLot bool) (FugleAPIResponse, error) {
 
-	resp := cli.callAPI(cli.chartEndpoint, symbolID, oddLot)
+	resp, err := cli.callAPI(cli.chartEndpoint, symbolID, oddLot)
+	if err != nil {
+		return FugleAPIResponse{}, errors.Wrap(err, "call api failed")
+	}
 	return cli.decodeResponseBody(resp)
 }
 
-func (cli *fugleClient) Quote(symbolID string, oddLot bool) FugleAPIResponse {
+func (cli *fugleClient) Quote(symbolID string, oddLot bool) (FugleAPIResponse, error) {
 
-	resp := cli.callAPI(cli.quoteEndpoint, symbolID, oddLot)
+	resp, err := cli.callAPI(cli.quoteEndpoint, symbolID, oddLot)
+	if err != nil {
+		return FugleAPIResponse{}, errors.Wrap(err, "call api failed")
+	}
 	return cli.decodeResponseBody(resp)
 }
 
-func (cli *fugleClient) Meta(symbolID string, oddLot bool) FugleAPIResponse {
+func (cli *fugleClient) Meta(symbolID string, oddLot bool) (FugleAPIResponse, error) {
 
-	resp := cli.callAPI(cli.metaEndpoint, symbolID, oddLot)
+	resp, err := cli.callAPI(cli.metaEndpoint, symbolID, oddLot)
+	if err != nil {
+		return FugleAPIResponse{}, errors.Wrap(err, "call api failed")
+	}
 	return cli.decodeResponseBody(resp)
 }
 
-func (cli *fugleClient) Dealts(symbolID string, oddLot bool) FugleAPIResponse {
+func (cli *fugleClient) Dealts(symbolID string, oddLot bool) (FugleAPIResponse, error) {
 
-	resp := cli.callAPI(cli.dealtsEndpoint, symbolID, oddLot)
+	resp, err := cli.callAPI(cli.dealtsEndpoint, symbolID, oddLot)
+	if err != nil {
+		return FugleAPIResponse{}, errors.Wrap(err, "call api failed")
+	}
 	return cli.decodeResponseBody(resp)
 }

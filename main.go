@@ -11,8 +11,11 @@ func main() {
 		client.ConfigOption(config.Config),
 	)
 	if err != nil {
-		logrus.Fatal("failed to init fugle api client")
+		logrus.Fatal(err.Error())
 	}
-	result := myClient.Meta("0056", false)
+	result, err := myClient.Meta("0056", false)
+	if err != nil {
+		logrus.Warn(err.Error())
+	}
 	result.PrettyPrint()
 }

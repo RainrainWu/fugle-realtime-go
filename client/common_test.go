@@ -15,7 +15,8 @@ func TestClientChartAPI(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	chart := myClient.Chart("2330", false)
+	chart, err := myClient.Chart("2330", false)
+	assert.Empty(t, err)
 	assert.NotNil(t, chart.Data.Chart)
 }
 
@@ -26,7 +27,8 @@ func TestClientQuoteAPI(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	result := myClient.Quote("2330", false)
+	result, err := myClient.Quote("2330", false)
+	assert.Empty(t, err)
 	assert.NotNil(t, result.Data.Quote.Order.Bestasks)
 	assert.NotNil(t, result.Data.Quote.Order.Bestbids)
 }
@@ -38,7 +40,8 @@ func TestClientMetaAPI(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	result := myClient.Meta("2330", false)
+	result, err := myClient.Meta("2330", false)
+	assert.Empty(t, err)
 	assert.NotEmpty(t, result.Data.Meta.Namezhtw)
 	assert.NotEmpty(t, result.Data.Meta.Industryzhtw)
 	assert.NotEmpty(t, result.Data.Meta.Volumeperunit)
@@ -54,6 +57,7 @@ func TestClientDealtsAPI(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	result := myClient.Dealts("2330", false)
+	result, err := myClient.Dealts("2330", false)
+	assert.Empty(t, err)
 	assert.NotEmpty(t, result.Data.Dealts)
 }
