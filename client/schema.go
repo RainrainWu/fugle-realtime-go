@@ -9,7 +9,8 @@ import (
 )
 
 type FugleAPIResponse struct {
-	APIVersion string       `json:"apiVersion"`
+	APIVersion string       `json:"api_version"`
+	StatusCode int          `json:"status_code"`
 	Data       FugleAPIData `json:"data"`
 }
 

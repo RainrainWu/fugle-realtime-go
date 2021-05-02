@@ -1,9 +1,10 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/RainrainWu/fugle-realtime-go/client"
 	"github.com/RainrainWu/fugle-realtime-go/config"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -11,8 +12,12 @@ func main() {
 		client.ConfigOption(config.Config),
 	)
 	if err != nil {
-		logrus.Fatal("failed to init fugle api client")
+		fmt.Printf("%+v\n", err)
 	}
-	result := myClient.Meta("0056", false)
-	result.PrettyPrint()
+	result, err := myClient.Meta("0056", false)
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+	} else {
+		result.PrettyPrint()
+	}
 }
